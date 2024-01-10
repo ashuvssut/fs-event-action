@@ -1,15 +1,18 @@
 {
   "dependencies": {
+    "c-promise2": "^0.13.12",
     "chokidar": "^3.5.3",
-    "nanoid": "^5.0.4",
+    "nanoid": "^3.0.0",
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
+    "start": "node -r esm  dist/index.js",
     "build": "tsc"
   },
   "devDependencies": {
     "@types/node": "^20.10.8",
+    "esm": "^3.2.25",
     "ts-node-dev": "^2.0.0"
   }
 }

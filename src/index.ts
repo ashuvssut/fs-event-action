@@ -1,6 +1,8 @@
-import * as chokidar from "chokidar";
+import chokidar from "chokidar";
 import { fsEventAction } from "./event-action.example";
-import { registerAction, unregisterAction } from "./utils/actionRegister";
+import { CPromise as cp } from "c-promise2";
+import { nanoid } from "nanoid";
+import { resolve } from "path";
 
 const watchedDirectory = "/Users/ashu/dev/ZusBE/gosdk/wasmsdk";
 const watcher = chokidar.watch(watchedDirectory, {
@@ -23,13 +25,25 @@ watcher
 //   log("Raw event info:", event, path, details);
 // });
 
-
-async function handleFsChange(path: string) {
-  console.log(`change: ${path}`);
+let pendingAction = { id: "", path: "" };
+let currentAction = { id: "", path: "", control: null as any };
+async function handleFsChange(path: string, actionId = nanoid()) {
+  console.log(`Received: ${actionId}, change: ${path}`);
+  if (currentAction.id !== "") {
+    pendingAction = { id: "", path: "" };
+    currentAction.control?.cancel("Cancelled by new change");
+    return;
+  }
   try {
-    const actionId = registerAction();
-    const execId = await fsEventAction({ path, actionId });
-    unregisterAction(actionId);
+    const cFsEventAction = cp.promisify(fsEventAction({ path, actionId }));
+    const actionControl = cFsEventAction().finally(() => {
+      currentAction = { id: "", path: "", control: null };
+      if (pendingAction.id !== "") {
+        handleFsChange(pendingAction.path, pendingAction.id);
+        pendingAction = { id: "", path: "" };
+      }
+    });
+    currentAction = { id: actionId, path, control: actionControl };
   } catch (error) {
     log(`Error handling fs change: ${error}`);
   }
