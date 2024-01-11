@@ -2,6 +2,7 @@
   "dependencies": {
     "c-promise2": "^0.13.12",
     "chokidar": "^3.5.3",
+    "log-beautify": "^1.2.0",
     "nanoid": "^3.0.0",
     "typescript": "^5.3.3"
   },

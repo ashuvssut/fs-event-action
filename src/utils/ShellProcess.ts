@@ -1,5 +1,6 @@
 import { spawn, ChildProcess, SpawnOptions } from "child_process";
 import { CPromise } from "c-promise2";
+import { logr } from "./logr";
 
 export class ShellProcess {
   private childProcess: ChildProcess | null = null;
@@ -26,15 +27,14 @@ export class ShellProcess {
     // @ts-ignore
     return new CPromise((resolve, reject, { onCancel }) => {
       const execCommand = (index: number): void => {
-        const progress = `${index}/${shellThis.cmds.length}`;
-        console.log(`Process: ${this.identifier}, progress ${progress}`);
         if (index >= shellThis.cmds.length) {
           resolve(); // All commands executed successfully
           return;
         }
 
+        const progress = `${index + 1}/${shellThis.cmds.length}`;
         const { command, args } = shellThis.cmds[index];
-        console.log(`Executing command: ${command} ${args.join(" ")}`);
+        logr.debug(`Executing ${progress}: ${command} ${args.join(" ")}`);
         shellThis.childProcess = spawn(command, args, {
           stdio: "inherit",
           shell: true,
@@ -42,11 +42,17 @@ export class ShellProcess {
         });
 
         shellThis.childProcess.on("exit", (code, signal) => {
-          if (code === 0 || !shellThis.cmds[index].exitOnErr) {
+          if (code === 0) {
             execCommand(index + 1); // Continue with the next command
           } else {
+            // handle error
             const errorMessage = `Command execution failed with code ${code} and signal ${signal}`;
-            reject(new Error(errorMessage));
+            if (shellThis.cmds[index].exitOnErr) {
+              reject(new Error(errorMessage));
+            } else {
+              logr.warn(`\t${errorMessage}`);
+              execCommand(index + 1);
+            }
           }
         });
 
@@ -55,13 +61,14 @@ export class ShellProcess {
         });
 
         onCancel(() => {
-          console.log("Killing child process...");
+          logr.error("Killing child process...");
           shellThis.cleanup();
           shellThis.kill();
           reject(new Error("Command execution cancelled"));
         });
       };
 
+      logr.info(`Executing ${shellThis.identifier}...`);
       execCommand(0);
     });
   }
