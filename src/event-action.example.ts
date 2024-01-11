@@ -10,10 +10,16 @@ export const fsEventAction = cp2.promisify(function* ({
   actionId,
   prevId,
 }: TActionParams) {
-  yield genWasm(actionId, prevId);
+
+  // @ts-ignore
+  const wasmPath: string = yield genWasm(actionId, prevId);
 });
 
-const genWasm = cp2.promisify(function* (actionId: string, prevId: string) {
+type TProcessRet<TRet> = Generator<Promise<void>, TRet, unknown>;
+const genWasm = cp2.promisify(function* (
+  actionId: string,
+  prevId: string
+): TProcessRet<string> {
   const genCmd = `GOOS=js CGO_ENABLED=0 GOARCH=wasm go build -o zcn-${actionId}.wasm github.com/0chain/gosdk/wasmsdk`;
   const rmCmd = `rm zcn-${prevId}.wasm`;
 
@@ -25,5 +31,5 @@ const genWasm = cp2.promisify(function* (actionId: string, prevId: string) {
 
   const wasmPath = `${config.watchDir}/zcn-${actionId}.wasm`;
   logr.ok(`WASM generated: ${wasmPath}`);
+  return wasmPath;
 });
-
