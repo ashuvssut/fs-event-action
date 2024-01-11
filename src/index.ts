@@ -1,8 +1,9 @@
 import chokidar from "chokidar";
 import { fsEventAction } from "./event-action.example";
 import { nanoid } from "nanoid";
+import { config } from "./config";
 
-const watchedDirectory = "/Users/ashu/dev/ZusBE/gosdk/wasmsdk";
+const watchedDirectory = config.watchDir;
 const watcher = chokidar.watch(watchedDirectory, {
   persistent: true,
   ignoreInitial: true,
