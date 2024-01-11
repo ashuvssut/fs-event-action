@@ -7,6 +7,7 @@ const watchedDirectory = config.watchDir;
 const watcher = chokidar.watch(watchedDirectory, {
   persistent: true,
   ignoreInitial: true,
+  ...config.watcherOptions,
 });
 
 const log = console.log.bind(console);
@@ -25,6 +26,7 @@ watcher
 //   log("Raw event info:", event, path, details);
 // });
 
+let prevId: string | null = null;
 let pendingAction = { id: "", path: "" };
 let currentAction = { id: "", path: "", control: null as any };
 
@@ -37,10 +39,11 @@ async function handleFsChange(path: string, actionId = nanoid()) {
   }
 
   try {
-    const actionControl = fsEventAction({ path, actionId })
+    const actionControl = fsEventAction({ path, actionId, prevId })
       .then(() => log(`Finished: ${currentAction.id}`))
       .catch((error: any) => logErr(`${currentAction.id}: ${error}`))
       .finally(() => {
+        prevId = currentAction.id;
         currentAction = { id: "", path: "", control: null };
         if (pendingAction.id) {
           handleFsChange(pendingAction.path, pendingAction.id);
