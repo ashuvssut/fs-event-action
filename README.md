@@ -3,7 +3,7 @@
 Run a cancellable asynchronous action triggered via file system (FS) events.
 
 - Utilizes [chokidar](https://github.com/paulmillr/chokidar) to monitor FS events in a directory.
-  - Configuration for watch options can be found in [`src/config.js`](src/config.js).
+  - Configuration for watch options can be found in [`src/config.ts`](src/config.ts).
 - Upon any FS event, a "Cancellable" action is initiated. The cancellable action is crafted using [c-promise2](https://github.com/DigitalBrainJS/c-promise).
   - Explore CodeSandbox examples in the [c-promise2](https://github.com/DigitalBrainJS/c-promise) repository to understand its usage.
   - Refer to [this video](https://youtu.be/Em2jqwROdZc) for insights into how `generator`/`yield` is employed to write `async`/`await` logic.
