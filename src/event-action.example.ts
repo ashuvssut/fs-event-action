@@ -24,8 +24,7 @@ const genWasm = cp2.promisify(function* (actionId: string, prevId: string) {
   const genProcess = new ShellProcess({ cwd: config.watchDir }, "wasm-gen");
   genProcess.addOr(rmCmd).addAnd(genCmd);
 
-  const a = yield genProcess.exec();
-  console.log(1, a);
+  yield genProcess.exec();
   const wasmPath = `${config.watchDir}/zcn-${actionId}.wasm`;
   logr.ok(`WASM generated: ${wasmPath}`);
   return wasmPath;
