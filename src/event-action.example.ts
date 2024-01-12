@@ -93,8 +93,12 @@ function updateZcnJs(filePath: string, wasmPath: string): void {
 
 function reloadWebapp(wasmDir: string) {
   const appDir = path.dirname(wasmDir);
-  const nextConfigPath = path.join(appDir, "next.config.js");
-  // Touch the next.config.js file to trigger a server reload
-  console.log(nextConfigPath);
-  fs.utimesSync(nextConfigPath, new Date(), new Date());
+
+  // Fast refreshing the webapp
+  const randomRefreshTriggeringFilePath = path.join(appDir, "i18n.js");
+  fs.utimesSync(randomRefreshTriggeringFilePath, new Date(), new Date());
+
+  // hard reloads nextjs dev server
+  // const nextConfigPath = path.join(appDir, "next.config.js");
+  // fs.utimesSync(nextConfigPath, new Date(), new Date());
 }

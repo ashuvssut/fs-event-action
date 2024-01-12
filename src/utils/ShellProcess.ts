@@ -36,7 +36,7 @@ export class ShellProcess {
 
         const progress = `${index + 1}/${shellThis.cmds.length}`;
         const { command, args } = shellThis.cmds[index];
-        logr.debug(`Executing ${progress}: ${command} ${args.join(" ")}`);
+        logr.debug(`\tExecuting ${progress}: ${command} ${args.join(" ")}`);
         shellThis.childProcess = spawn(command, args, {
           stdio: ["inherit", "pipe", "inherit"], // Capture stdout
           shell: true,
@@ -62,7 +62,7 @@ export class ShellProcess {
             if (shellThis.cmds[index].exitOnErr) {
               reject(new Error(errorMessage));
             } else {
-              logr.warn(`\t${errorMessage}`);
+              logr.warn(`\t\t${errorMessage}`);
               execCommand(index + 1);
             }
           }
@@ -73,7 +73,7 @@ export class ShellProcess {
         });
 
         onCancel(() => {
-          logr.error("Killing child process...");
+          logr.error("\tKilling child process...");
           shellThis.cleanup();
           shellThis.kill();
           reject(new Error("Command execution cancelled"));
