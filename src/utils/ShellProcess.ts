@@ -76,7 +76,7 @@ export class ShellProcess {
   //   });
   // }
   *exec() {
-    return this.execFn()();
+    yield this.execFn()();
   }
   private execFn = () => {
     const shellThis = this;
@@ -91,7 +91,7 @@ export class ShellProcess {
           const result = shellThis.stdout.join("\n");
           logr.debug(`\tExec success: ${result}`);
           const a = yield shellThis.spawnAsync(command, args);
-          console.log(234234234, a);
+          yield a;
         } catch (error: any) {
           const message = `Exec failed: ${error.message}`;
           if (shellThis.cmds[index].exitOnErr)
@@ -113,7 +113,7 @@ export class ShellProcess {
       // shellThis.stdout = [];
       // shellThis.stderr = [];
       shellThis.childProcess = spawn(command, args, {
-        stdio: "inherit",
+        stdio: ["inherit", "pipe", "inherit"], // Capture stdout
         shell: true,
         ...shellThis.options,
       });

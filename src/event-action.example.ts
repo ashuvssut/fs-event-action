@@ -43,14 +43,14 @@ const useWasmInApps = cp2.promisify(function* (wasmPath: string) {
     const allWasmPaths = yield findProcess.exec()
     console.log(333, allWasmPaths);
 
-    let result = allWasmPaths.next();
-    while (!result.done) {
-      console.log(result.value); // 1 3 5 7 9
-      result = allWasmPaths.next();
-    }
-    // for (const wasmPath of allWasmPaths) {
-    //   console.log(222, wasmPath);
+    // let result = allWasmPaths.next();
+    // while (!result.done) {
+    //   console.log(result.value); // 1 3 5 7 9
+    //   result = allWasmPaths.next();
     // }
+    for (const wasmPath of allWasmPaths) {
+      console.log(222,  wasmPath);
+    }
   }
 
   // code replace
