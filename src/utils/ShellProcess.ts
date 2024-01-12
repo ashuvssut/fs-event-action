@@ -22,13 +22,15 @@ export class ShellProcess {
     return this;
   }
 
-  exec(): Promise<void> {
+  private stdouts: string[][] = [];
+  
+  exec(): Promise<string[]> {
     const shellThis = this;
     // @ts-ignore
     return new CPromise((resolve, reject, { onCancel }) => {
       const execCommand = (index: number): void => {
         if (index >= shellThis.cmds.length) {
-          resolve(); // All commands executed successfully
+          resolve(shellThis.stdouts);
           return;
         }
 
@@ -36,13 +38,23 @@ export class ShellProcess {
         const { command, args } = shellThis.cmds[index];
         logr.debug(`Executing ${progress}: ${command} ${args.join(" ")}`);
         shellThis.childProcess = spawn(command, args, {
-          stdio: "inherit",
+          stdio: ["inherit", "pipe", "inherit"], // Capture stdout
           shell: true,
           ...shellThis.options,
         });
 
+        const stdoutChunks: Buffer[] = [];
+
+        shellThis.childProcess.stdout?.on("data", (chunk: Buffer) => {
+          stdoutChunks.push(chunk);
+        });
+
         shellThis.childProcess.on("exit", (code, signal) => {
           if (code === 0) {
+            const stdout = Buffer.concat(stdoutChunks)
+              .toString("utf-8")
+              .split("\n");
+            shellThis.stdouts.push(stdout);
             execCommand(index + 1); // Continue with the next command
           } else {
             // handle error
