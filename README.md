@@ -1,5 +1,3 @@
-Certainly! Here's an updated version with clickable file links:
-
 # fs-event-action
 
 Run a cancellable asynchronous action triggered via file system (FS) events.
@@ -23,6 +21,15 @@ Run a cancellable asynchronous action triggered via file system (FS) events.
 - Refer to [`src/event-action.example.ts`](src/event-action.example.ts) for an example demonstrating how to create cancellable logic.
 - Subsequent triggers of the Event Action will cancel the previously triggered Event Action if it is still running.
 
+## Demo
+
+- This video demonstates the working of [`src/event-action.example.ts`](src/event-action.example.ts)
+
+https://github.com/ashuvssut/fs-event-action/assets/60546840/4e8c1b8e-14a5-4884-adf2-b9635d6cca43
+
+
+
+
 ## Further Development
 
-- Note: The current examples may have incomplete TypeScript type definitions due to the absence of type definitions for the `c-promise2` library.
+- The current examples may have incomplete TypeScript type definitions due to the absence of type definitions for the `c-promise2` library.
