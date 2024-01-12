@@ -76,7 +76,7 @@ export class ShellProcess {
   //   });
   // }
   *exec() {
-    yield this.execFn()();
+    return this.execFn()();
   }
   private execFn = () => {
     const shellThis = this;
@@ -90,7 +90,8 @@ export class ShellProcess {
         try {
           const result = shellThis.stdout.join("\n");
           logr.debug(`\tExec success: ${result}`);
-          yield shellThis.spawnAsync(command, args);
+          const a = yield shellThis.spawnAsync(command, args);
+          console.log(234234234, a);
         } catch (error: any) {
           const message = `Exec failed: ${error.message}`;
           if (shellThis.cmds[index].exitOnErr)
@@ -109,22 +110,26 @@ export class ShellProcess {
 
     // @ts-ignore
     return new CPromise((resolve, reject, { onCancel }) => {
-      shellThis.stdout = [];
-      shellThis.stderr = [];
+      // shellThis.stdout = [];
+      // shellThis.stderr = [];
       shellThis.childProcess = spawn(command, args, {
         stdio: "inherit",
         shell: true,
         ...shellThis.options,
       });
 
+      shellThis.childProcess.stdout?.setEncoding("utf8");
       shellThis.childProcess.stdout?.on("data", (data) => {
         const lines = data.toString().trim().split("\n");
         shellThis.stdout = [...shellThis.stdout, ...lines];
+        console.log("asdfas");
       });
 
+      shellThis.childProcess.stderr?.setEncoding("utf8");
       shellThis.childProcess.stderr?.on("data", (data) => {
         const lines = data.toString().trim().split("\n");
         shellThis.stderr = [...shellThis.stderr, ...lines];
+        console.log(21113, shellThis.stderr);
       });
 
       shellThis.childProcess.on("exit", (code, signal) => {

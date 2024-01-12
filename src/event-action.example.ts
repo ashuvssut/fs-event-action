@@ -13,21 +13,21 @@ export const fsEventAction = cp2.promisify(function* ({
 }: TActionParams) {
   // @ts-ignore
   const wasmPath: string = yield genWasm(actionId, prevId);
-  console.log(1, wasmPath);
+  // console.log(1, wasmPath);
   yield useWasmInApps(wasmPath);
 });
 
 const genWasm = cp2.promisify(function* (actionId: string, prevId: string) {
-  const genCmd = `GOOS=js CGO_ENABLED=0 GOARCH=wasm go build -o zcn-${actionId}.wasm github.com/0chain/gosdk/wasmsdk`;
-  const rmCmd = `rm zcn-${prevId}.wasm`;
+  // const genCmd = `GOOS=js CGO_ENABLED=0 GOARCH=wasm go build -o zcn-${actionId}.wasm github.com/0chain/gosdk/wasmsdk`;
+  // const rmCmd = `rm zcn-${prevId}.wasm`;
 
-  const genProcess = new ShellProcess({ cwd: config.watchDir }, "wasm-gen");
-  genProcess.orAdd(rmCmd).andAdd(genCmd);
+  // const genProcess = new ShellProcess({ cwd: config.watchDir }, "wasm-gen");
+  // genProcess.orAdd(rmCmd).andAdd(genCmd);
 
-  const a = yield genProcess.exec();
-  console.log(a);
+  // const a = yield genProcess.exec();
+  // console.log(6666,a);
   const wasmPath = `${config.watchDir}/zcn-${actionId}.wasm`;
-  logr.ok(`WASM generated: ${wasmPath}`);
+  // logr.ok(`WASM generated: ${wasmPath}`);
   return wasmPath;
 });
 
@@ -37,14 +37,20 @@ const useWasmInApps = cp2.promisify(function* (wasmPath: string) {
     const wasmDir = path.join(config.webAppsDir, wasmDest);
     // const findWasmPathsCmd = `find  -name 'zcn*.wasm' -type f`;
     const findProcess = new ShellProcess({ cwd: wasmDir }, "find-wasm-paths");
-
+  
     const findWasmPathsCmd = `find . -name 'zcn*.wasm'`; // macos
     findProcess.andAdd(findWasmPathsCmd);
-    const allWasmPaths = yield findProcess.exec();
+    const allWasmPaths = yield findProcess.exec()
     console.log(333, allWasmPaths);
-    for (const wasmPath of allWasmPaths) {
-      console.log(222, wasmPath);
+
+    let result = allWasmPaths.next();
+    while (!result.done) {
+      console.log(result.value); // 1 3 5 7 9
+      result = allWasmPaths.next();
     }
+    // for (const wasmPath of allWasmPaths) {
+    //   console.log(222, wasmPath);
+    // }
   }
 
   // code replace
