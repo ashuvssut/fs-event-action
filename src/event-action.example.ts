@@ -3,6 +3,7 @@ import { cp2 } from "./c-promise2";
 import { config } from "./config";
 import { ShellProcess } from "./utils/ShellProcess";
 import { logr } from "./utils/logr";
+import * as fs from "fs";
 
 type TActionParams = { path: string; actionId: string; prevId: string };
 
@@ -31,23 +32,60 @@ const genWasm = cp2.promisify(function* (actionId: string, prevId: string) {
 });
 
 const useWasmInApps = cp2.promisify(function* (wasmPath: string) {
-  // replace wasm
   for (const wasmDest of config.wasmDest) {
     const wasmDir = path.join(config.webAppsDir, wasmDest);
-    const findProcess = new ShellProcess({ cwd: wasmDir }, "find-wasm-paths");
 
-    // const findWasmPathsCmd = `find  -name 'zcn*.wasm' -type f`;
-    const findWasmPathsCmd = `find . -name 'zcn*.wasm'`; // macos
-    findProcess.addAnd(findWasmPathsCmd);
-    const allWasmPaths = yield findProcess.exec();
+    // Delete all existing zcn.wasm files in wasmDir
+    const deleteWasmProcess = new ShellProcess(
+      { cwd: wasmDir },
+      "delete-wasm-files"
+    );
+    const deleteWasmCmd = `find . -name 'zcn*.wasm' -exec rm {} +`; // Deleting all zcn.wasm files
+    deleteWasmProcess.addAnd(deleteWasmCmd);
+    yield deleteWasmProcess.exec();
 
-    for (const wasmPath of allWasmPaths) {
-      console.log(222, wasmPath);
-    }
+    // Copy the new wasm in wasmPath to wasmDir
+    const copyWasmProcess = new ShellProcess(
+      { cwd: config.webAppsDir },
+      "copy-new-wasm"
+    );
+    const copyWasmCmd = `cp ${wasmPath} ${wasmDir}`;
+
+    copyWasmProcess.addAnd(copyWasmCmd);
+    yield copyWasmProcess.exec();
+
+    // You may use nodejs logics if cancellation doesnt matter to your use case
+    // for example, here these logics are not long running
+    // Update zcn.js file content
+    const filePath = path.join(wasmDir, "zcn.js");
+    updateZcnJs(filePath, wasmPath);
   }
-
-  // code replace
-  // const codeReplaceLn = `sed -i 's/await fetch('\''\/zcn.*\.wasm.*'\'';/await fetch("abcdefg");/' zcn.js`;
-  // const replaceProcess = //
-  //   new ShellProcess({ cwd: config.webAppsDir }, "replace-wasm");
 });
+
+// Function to update zcn.js file content
+function updateZcnJs(filePath: string, wasmPath: string): void {
+  try {
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+
+    // Define the pattern to search for
+    const searchPattern = /.*await fetch\('\/zcn.*'\).*/g;
+
+    // Find the line number containing the pattern
+    const lines = fileContent.split("\n");
+    const lineIndex = lines.findIndex((line) => searchPattern.test(line));
+
+    if (lineIndex !== -1) {
+      // Replace the line with the updated content
+      const wasmFileName = path.basename(wasmPath);
+      lines[lineIndex] = `    await fetch('/${wasmFileName}?v=20221230'),`;
+
+      // Write the modified content back to the file
+      fs.writeFileSync(filePath, lines.join("\n"), "utf-8");
+      logr.ok(`Updated zcn.js: ${filePath}`);
+    } else {
+      logr.error(`Pattern not found in ${filePath}`);
+    }
+  } catch (error) {
+    logr.error(`Error updating zcn.js: ${error}`);
+  }
+}
