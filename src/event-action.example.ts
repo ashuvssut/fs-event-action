@@ -58,6 +58,8 @@ const useWasmInApps = cp2.promisify(function* (wasmPath: string) {
     // Update zcn.js file content
     const filePath = path.join(wasmDir, "zcn.js");
     updateZcnJs(filePath, wasmPath);
+
+    reloadWebapp(wasmDir);
   }
 });
 
@@ -87,4 +89,12 @@ function updateZcnJs(filePath: string, wasmPath: string): void {
   } catch (error) {
     logr.error(`Error updating zcn.js: ${error}`);
   }
+}
+
+function reloadWebapp(wasmDir: string) {
+  const appDir = path.dirname(wasmDir);
+  const nextConfigPath = path.join(appDir, "next.config.js");
+  // Touch the next.config.js file to trigger a server reload
+  console.log(nextConfigPath);
+  fs.utimesSync(nextConfigPath, new Date(), new Date());
 }
